@@ -1,0 +1,23 @@
+November 13, 2018 (VERSION 0.4)
+-------------------------------
+ o no more set_max_var -> a functor Make and a function 'make' instead
+ o new function restrict
+ o new functions constrain and restriction
+ o extend print_to_dot and display with optional print_var argument
+All this contributed by Timothy Bourke (tbrk@github)
+
+February 2, 2010 (version 0.3)
+------------------------------
+ o new function random_sat
+ o new example in tiling.ml (tiling the 8x8 chessboard with 2x1 dominoes *)
+ o init removed and subsumed by set_max_var
+ o improved efficiency (one node table for each variable)
+
+July 16, 2009 (version 0.2)
+---------------------------
+ o fixed bug in count_sat (unused variables below the top variable where not
+   taken into account)
+
+June 7, 2008 (version 0.1)
+--------------------------
+ o LGPL license, with special exception for linking (see LICENSE)

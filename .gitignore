@@ -1,0 +1,17 @@
+Makefile
+config.status
+parser.output
+autom4te.cache/
+config.log
+.depend
+configure
+lexer.ml
+parser.mli
+parser.ml
+*.cm*
+*.annot
+*.o
+*.opt
+version.ml
+test.dot
+test.pdf
