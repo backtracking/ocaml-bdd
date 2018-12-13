@@ -35,35 +35,35 @@ let display b =
 
 let test2 s = let b = of_formula s in display b
 
-let r = test2 "(A -> B) -> (B -> A)"
+let _ = test2 "(A -> B) -> (B -> A)"
 
-let r = test "(a1<->a2)<->(a2<->a1)"
-let r = test "A \\/ ~A"
-let r = test "A -> ~~A"
-let r = test "A -> A"
-let r = test "((A -> B) -> A) -> A"
-let r = test "(A -> B)-> (~B -> ~ A)"
-let r = test "((A -> B) /\\ A) -> B"
-let r = test "((A -> B) /\\ ~ B) -> ~ A"
-let r = test "((A -> B) /\\ (B -> C)) -> (A -> C)"
-let r = test "(A /\\ (B \\/ C)) -> ((A /\\ B) \\/ (A /\\ C))"
-let r = test "((A /\\ B) \\/ (A /\\ C)) -> (A /\\ (B \\/ C))"
-let r = test "(A \\/ (B /\\ C)) -> ((A \\/ B) /\\ (A \\/ C))"
-let r = test "((A \\/ B) /\\ (A \\/ C)) -> (A \\/ (B /\\ C))"
-let r = test "(~ A -> A) -> A "
-let r = test "((P -> (Q /\\ R /\\ S)) /\\ ~S) -> ~P"
-let r = test "(P /\\ Q) -> (Q /\\ P)"
-let r = test "(A /\\ A) \\/ ~A"
-let r = test "~~A <-> A"
-let r = test "~(A /\\ B) <-> (~A \\/ ~B)"
-let r = test "~(A \\/ B) <-> (~A /\\ ~ B)"
-let r = test "(A \\/ (B /\\ C)) <-> ((A \\/ B) /\\ (A \\/ C))"
-let r = test "(A /\\ (B \\/ C)) <-> ((A /\\ B) \\/ (A /\\ C))"
+let _ = test "(a1<->a2)<->(a2<->a1)"
+let _ = test "A \\/ ~A"
+let _ = test "A -> ~~A"
+let _ = test "A -> A"
+let _ = test "((A -> B) -> A) -> A"
+let _ = test "(A -> B)-> (~B -> ~ A)"
+let _ = test "((A -> B) /\\ A) -> B"
+let _ = test "((A -> B) /\\ ~ B) -> ~ A"
+let _ = test "((A -> B) /\\ (B -> C)) -> (A -> C)"
+let _ = test "(A /\\ (B \\/ C)) -> ((A /\\ B) \\/ (A /\\ C))"
+let _ = test "((A /\\ B) \\/ (A /\\ C)) -> (A /\\ (B \\/ C))"
+let _ = test "(A \\/ (B /\\ C)) -> ((A \\/ B) /\\ (A \\/ C))"
+let _ = test "((A \\/ B) /\\ (A \\/ C)) -> (A \\/ (B /\\ C))"
+let _ = test "(~ A -> A) -> A "
+let _ = test "((P -> (Q /\\ R /\\ S)) /\\ ~S) -> ~P"
+let _ = test "(P /\\ Q) -> (Q /\\ P)"
+let _ = test "(A /\\ A) \\/ ~A"
+let _ = test "~~A <-> A"
+let _ = test "~(A /\\ B) <-> (~A \\/ ~B)"
+let _ = test "~(A \\/ B) <-> (~A /\\ ~ B)"
+let _ = test "(A \\/ (B /\\ C)) <-> ((A \\/ B) /\\ (A \\/ C))"
+let _ = test "(A /\\ (B \\/ C)) <-> ((A /\\ B) \\/ (A /\\ C))"
 
-let r = test "((b <-> c) -> (a/\\b/\\c)) /\\
+let _ = test "((b <-> c) -> (a/\\b/\\c)) /\\
 ((c<->a)->(a/\\b/\\c)) /\\ ((a<->b)->(a/\\b/\\c)) -> (a/\\b/\\c)"
 
-let r = test "~ ~(~p1 \\/ ~p2 \\/ ~p3 \\/ (p1 & p2 & p3))"
+let _ = test "~ ~(~p1 \\/ ~p2 \\/ ~p3 \\/ (p1 & p2 & p3))"
 
 let de_bruijn_p_2 = test "
 (((((p1 -> p2) & (p2 -> p1)) -> (p1 & (p2 & (p3 & (p4 & p5))))) & ((((p2 ->
@@ -72,13 +72,13 @@ p3)) -> (p1 & (p2 & (p3 & (p4 & p5))))) & ((((p4 -> p5) & (p5 -> p4)) ->
 (p1 & (p2 & (p3 & (p4 & p5))))) & (((p5 -> p1) & (p1 -> p5)) -> (p1 & (p2 &
 (p3 & (p4 & p5))))))))) -> (p1 & (p2 & (p3 & (p4 & p5)))))"
 
-let r = test2 "A -> (A -> ~ A)"
-let r = test2 "A /\\ ~A"
-let r = test2 "(A \\/ B) /\\ ~A /\\ ~B"
-let r = test2 "(A -> B) -> (~A -> ~B)"
-let r = test2 "(A -> B) -> (B -> A)"
-let r = test2 "B -> (B /\\ A)"
-let r = test2 "(A -> A) <-> A"
+let _ = test2 "A -> (A -> ~ A)"
+let _ = test2 "A /\\ ~A"
+let _ = test2 "(A \\/ B) /\\ ~A /\\ ~B"
+let _ = test2 "(A -> B) -> (~A -> ~B)"
+let _ = test2 "(A -> B) -> (B -> A)"
+let _ = test2 "B -> (B /\\ A)"
+let _ = test2 "(A -> A) <-> A"
 
 let () =
   let _, b = bdd_formula (Bench_prop.de_bruijn_n 5) in

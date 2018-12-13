@@ -1,35 +1,56 @@
 # ocaml-bdd
-A simple BDD library for OCaml
 
 This is a simple implementation of a BDD library for OCaml,
 mostly for teaching and quick experiment purposes.
 
-Files are:
+## Build
 
-- bdd.ml: the BDD library; bdd.mli should be self-explanatory
+You need `dune` on your system. If you don't have it, install `opam` then try `opam install dune`.
 
-- check.ml: a quick check; "make check" compiles and runs it
+To build everything:
 
-- prop.mli, lexer.mll and parser.mly: propositional logic, with a parser,
-  used to test the Bdd library; see check.ml for examples
+```sh
+make
+```
 
-- bench_prop.ml: various ways of generating valid propositional formulae;
-  compiled as binary bench_prop.opt
+It will build these libraries:
 
-- bdd_sat.ml: a propositional tautology checker using Bdd
-  compiled as binary bdd_sat.opt
+- `bdd`: the main library - `lib/bdd.mli` should be self-explanatory
+- `prop`: propositional logic, with a parser, used to test the main library - see `check` for example
+- `bench_prop`: various ways of generating valid propositional formulae
 
-  these two binaries can be combined as follows:
+Many executables:
 
-	./bench_prop.opt -pigeon-p 7 | ./bdd_sat.opt
-	1: valid user time: 0.60
-	table length: 100003 / nb. entries: 2 / sum of bucket length: 20679
-	smallest bucket: 0 / median bucket: 0 / biggest bucket: 3
+- `test`: tests producing graphical output - you'll need the `graphviz` and `gv` packages from your distribution
+- `tiling`
+- `bdd_sat`: a propositional tautology checker using `bdd`
+- `queen`: computes the number of solutions to the n-queens problem, using a propositional formula (this is not an efficient way to solve this problem, simply another way to test the `bdd` library)
+- `path`
+- `check`: a quick check
+- `bench_prop_cli`: generate valide propositional formulae from command line
 
-- queen.ml: computes the number of solutions to the n-queens problem, using
-  a propositional formula (this is not an efficient way to solve this problem,
-  simply another way to test the Bdd library); compile with "make queen.opt"
-  and run as
+To run any of them, let's say `check`, do:
 
-	./queen.opt 8
-	There are 92 solutions
+```sh
+dune exec test/check.exe
+```
+
+You can combine some of them, e.g.:
+
+```sh
+dune exec test/bench_prop_cli -pigeon-p 7 | dune exec test/bdd_sat.exe
+```
+
+## Test
+
+You can run tests using:
+
+```sh
+make test
+```
+
+## Install
+
+```sh
+make install
+```

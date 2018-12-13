@@ -14,7 +14,13 @@
 
 open Format
 
-let n = try int_of_string Sys.argv.(1) with _ -> eprintf "queen N"; exit 1
+let _ = if Array.length Sys.argv <> 2 then failwith ("usage: " ^ Sys.argv.(0) ^ " <size>")
+
+let n = match int_of_string Sys.argv.(1) with
+  | exception _ -> failwith "size should be a number"
+  | n when n <= 0 -> failwith "size should be greater than 0"
+  | n -> n
+
 include (val Bdd.make (n * n))
 
 let fold_and i j f =

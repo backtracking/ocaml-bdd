@@ -81,11 +81,13 @@ type t = bdd (* export *)
 
 let view b = b.node
 
+(* unused
 let equal x y = match x, y with
   | Node (v1, l1, h1), Node (v2, l2, h2) ->
       v1 == v2 && l1 == l2 && h1 == h2
   | _ ->
       x == y
+*)
 
 (** perfect hashing is actually less efficient
 let pair a b = (a + b) * (a + b + 1) / 2 + a
@@ -126,6 +128,8 @@ let fold f t init =
   in
   Array.fold_right (fold_bucket 0) t.table init
 
+(* unused
+
 let iter f t =
   let rec iter_bucket i b =
     if i >= Weak.length b then () else
@@ -134,6 +138,7 @@ let iter f t =
 	| None -> iter_bucket (i+1) b
   in
   Array.iter (iter_bucket 0) t.table
+*)
 
 let count t =
   let rec count_bucket i b accu =
@@ -193,7 +198,7 @@ let hashcons_node v l h =
       hnode
     end else begin
       match Weak.get_copy bucket i with
-        | Some {node=Node(v',l',h')} when v==v' && l==l' && h==h' ->
+	| Some {node=Node(v',l',h'); _} when v==v' && l==l' && h==h' ->
 	    begin match Weak.get bucket i with
               | Some v -> v
               | None -> loop (i+1)
@@ -258,14 +263,15 @@ let mk_not x =
       let res = match x.node with
 	| Zero -> one
 	| One -> zero
-	| Node (v, l, h) -> mk v (mk_not_rec l) (mk_not_rec h)
+	| Node (v, l, h) -> mk v ~low:(mk_not_rec l) ~high:(mk_not_rec h)
       in
       H1.add cache x res;
       res
   in
   mk_not_rec x
 
-let bool_of = function Zero -> false | One -> true | _ -> invalid_arg "bool_of"
+(* unused
+let bool_of = function Zero -> false | One -> true | _ -> invalid_arg "bool_of"*)
 let of_bool b = if b then one else zero
 
 module H2 = Hashtbl.Make(
@@ -343,11 +349,11 @@ let gapply op =
 		let v1 = var u1 in
 		let v2 = var u2 in
 		if v1 == v2 then
-		  mk v1 (app (low u1, low u2)) (app (high u1, high u2))
+		  mk v1 ~low:(app (low u1, low u2)) ~high:(app (high u1, high u2))
 		else if v1 < v2 then
-		  mk v1 (app (low u1, u2)) (app (high u1, u2))
+		  mk v1 ~low:(app (low u1, u2)) ~high:(app (high u1, u2))
 		else (* v1 > v2 *)
-		  mk v2 (app (u1, low u2)) (app (u1, high u2))
+		  mk v2 ~low:(app (u1, low u2)) ~high:(app (u1, high u2))
 	      in
 	      H2.add cache u12 res;
 	      res
@@ -379,12 +385,12 @@ let constrain b1 b2 =
           if v1 == v2 then begin
             if low u2 == zero then app (high u1, high u2)
             else if high u2 == zero then app (low u1, low u2)
-            else mk (var u1) (app (low u1, low u2)) (app (high u1, high u2))
+            else mk (var u1) ~low:(app (low u1, low u2)) ~high:(app (high u1, high u2))
           end
           else if v1 < v2 then
-            mk v1 (app (low u1, u2)) (app (high u1, u2))
+            mk v1 ~low:(app (low u1, u2)) ~high:(app (high u1, u2))
           else (* v1 > v2 *)
-            mk v2 (app (u1, low u2)) (app (u1, high u2))
+            mk v2 ~low:(app (u1, low u2)) ~high:(app (u1, high u2))
         in
         H2.add cache u12 res;
         res
@@ -409,10 +415,10 @@ let restriction b1 b2 =
           if v1 == v2 then begin
             if low u2 == zero then app (high u1, high u2)
             else if high u2 == zero then app (low u1, low u2)
-            else mk (var u1) (app (low u1, low u2)) (app (high u1, high u2))
+            else mk (var u1) ~low:(app (low u1, low u2)) ~high:(app (high u1, high u2))
           end
           else if v1 < v2 then
-            mk v1 (app (low u1, u2)) (app (high u1, u2))
+            mk v1 ~low:(app (low u1, u2)) ~high:(app (high u1, u2))
           else (* v1 > v2 *)
             app (u1, mk_or (low u2) (high u2))
         in
@@ -429,7 +435,7 @@ let restrict u x b =
     with Not_found ->
       let res =
         if var u > x then u
-        else if var u < x then mk (var u) (app (low u)) (app (high u))
+        else if var u < x then mk (var u) ~low:(app (low u)) ~high:(app (high u))
         else (* var u = x *) if b then app (high u)
         else (* var u = x, b = 0 *) app (low u)
       in
@@ -489,7 +495,7 @@ let any_sat =
   let rec mk acc b = match b.node with
     | Zero -> raise Not_found
     | One -> acc
-    | Node (v, {node=Zero}, h) -> mk ((v,true)::acc) h
+    | Node (v, {node=Zero; _}, h) -> mk ((v,true)::acc) h
     | Node (v, l, _) -> mk ((v,false)::acc) l
   in
   mk []
@@ -498,8 +504,8 @@ let random_sat =
   let rec mk acc b = match b.node with
     | Zero -> raise Not_found
     | One -> acc
-    | Node (v, {node=Zero}, h) -> mk ((v,true) :: acc) h
-    | Node (v, l, {node=Zero}) -> mk ((v,false) :: acc) l
+    | Node (v, {node=Zero; _}, h) -> mk ((v,true) :: acc) h
+    | Node (v, l, {node=Zero; _}) -> mk ((v,false) :: acc) l
     | Node (v, l, _) when Random.bool () -> mk ((v,false) :: acc) l
     | Node (v, _, h) -> mk ((v,true) :: acc) h
   in
@@ -555,7 +561,7 @@ let format_to_dot b fmt =
     end
   in
   Hashtbl.iter
-    (fun v s ->
+    (fun _ s ->
        fprintf fmt "{rank=same; ";
        S.iter (fun x -> fprintf fmt "%d " x.tag) s;
        fprintf fmt ";}@\n"
@@ -590,6 +596,3 @@ let make ?(print_var=fun ff -> Format.fprintf ff "x%d")
     = let module B = Make(struct let print_var = print_var
                                  let size = size let max_var = max_var end) in
       (module B: BDD)
-
-
-

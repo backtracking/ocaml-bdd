@@ -1,0 +1,17 @@
+(library
+  (name bdd)
+  (modules bdd)
+  (public_name bdd))
+
+(library
+  (name prop)
+  (modules prop parser lexer bench_prop)
+  (libraries bdd)
+  ; we should wrap it or change the name of the modules as they're quite generic
+  (wrapped false))
+
+(ocamllex
+  (modules lexer))
+
+(menhir
+  (modules parser))
