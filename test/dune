@@ -1,0 +1,38 @@
+(executable
+  (name check)
+  (modules check)
+  (libraries bdd prop))
+
+(alias
+  (name runtest)
+  (action (run ./check.exe)))
+
+(executable
+  (name test)
+  (modules test)
+  (libraries bdd prop))
+
+(executable
+  (name queen)
+  (modules queen)
+  (libraries bdd))
+
+(executable
+  (name tiling)
+  (modules tiling)
+  (libraries bdd))
+
+(executable
+  (name path)
+  (modules path)
+  (libraries bdd))
+
+(executable
+  (name bdd_sat)
+  (modules bdd_sat)
+  (libraries prop unix))
+
+(executable
+  (name bench_prop_cli)
+  (modules bench_prop_cli)
+  (libraries prop))

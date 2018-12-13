@@ -83,34 +83,10 @@ let right n =
 
 let pigeon_p n = Pimp (left n, right n)
 
-let pigeon_n n = assert false
+let pigeon_n _ = assert false
 
 let equiv_p n =
   let f = ref (var n) in
   for i = 1 to n-1 do f := Piff (var (n-i), !f) done;
   for i = 1 to n do f := Piff (var (n+1-i), !f) done;
   !f
-
-(* main *)
-
-type bench = De_bruijn_p | De_bruijn_n | Pigeon_p | Equiv_p
-let bench = ref De_bruijn_p
-let n = ref 10
-
-let () =
-  Arg.parse
-      ["-de-bruijn-p", Arg.Unit (fun () -> bench := De_bruijn_p), "";
-       "-de-bruijn-n", Arg.Unit (fun () -> bench := De_bruijn_n), "";
-       "-pigeon-p", Arg.Unit (fun () -> bench := Pigeon_p), "";
-       "-equiv-p", Arg.Unit (fun () -> bench := Equiv_p), ""]
-      (fun x -> n := int_of_string x)
-      "";
-  match !bench with
-    | De_bruijn_p ->
-	Format.printf "# de_bruijn_p n=%d@\n%a@." !n print (de_bruijn_p !n)
-    | De_bruijn_n ->
-	Format.printf "# de_bruijn_n n=%d@\n%a@." !n print (de_bruijn_n !n)
-    | Pigeon_p ->
-	Format.printf "# pigeon_p n=%d@\n%a@." !n print (pigeon_p !n)
-    | Equiv_p ->
-	Format.printf "# equiv_p n=%d@\n%a@." !n print (equiv_p !n)

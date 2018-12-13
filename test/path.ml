@@ -14,8 +14,13 @@
 
 open Format
 
-let w = int_of_string Sys.argv.(1)
-let h = int_of_string Sys.argv.(2)
+let _ =
+  if Array.length Sys.argv <> 3 then failwith ("usage: " ^ Sys.argv.(0) ^ "<weight> <height>")
+
+let w, h = match int_of_string Sys.argv.(1), int_of_string Sys.argv.(2) with
+  | exception _ -> failwith "weight and height should be numbers"
+  | w, h when w > 0 && h > 0 -> w, h
+  | _ -> failwith "weight and height should be greater than 0"
 
 let edges = ref []
 
