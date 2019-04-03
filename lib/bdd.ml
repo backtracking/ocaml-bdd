@@ -70,6 +70,13 @@ module Make(X: sig
 end) = struct
     open X
 
+let rec power_2_above x n =
+  if x >= n then x
+  else if x * 2 > Sys.max_array_length then x
+  else power_2_above (x * 2) n
+
+let size = power_2_above 16 size
+
 let print_var = print_var
 
 let get_max_var () = max_var
@@ -94,7 +101,7 @@ let pair a b = (a + b) * (a + b + 1) / 2 + a
 let triple a b c = pair c (pair a b)
 let hash_node v l h = abs (triple l.tag h.tag v)
 **)
-let hash_node l h = abs (19 * l.tag + h.tag)
+let hash_node l h = 19 * l.tag + h.tag
 
 let hash = function
   | Zero -> 0
@@ -110,8 +117,6 @@ type table = {
 }
 
 let create sz =
-  let sz = if sz < 7 then 7 else sz in
-  let sz = if sz > Sys.max_array_length then Sys.max_array_length else sz in
   let emptybucket = Weak.create 0 in
   { table = Array.make sz emptybucket;
     totsize = 0;
@@ -147,12 +152,10 @@ let count t =
   in
   Array.fold_right (count_bucket 0) t.table 0
 
-let next_sz n = min (3*n/2 + 3) (Sys.max_array_length - 1)
-
 let rec resize t =
   if debug then Format.eprintf "resizing...@.";
   let oldlen = Array.length t.table in
-  let newlen = next_sz oldlen in
+  let newlen = oldlen * 2 in
   if newlen > oldlen then begin
     let newt = create newlen in
     newt.limit <- t.limit + 100;          (* prevent resizing of newt *)
@@ -162,7 +165,7 @@ let rec resize t =
   end
 
 and add t d =
-  add_index t d ((hash d.node) mod (Array.length t.table))
+  add_index t d ((hash d.node) land (Array.length t.table - 1))
 
 and add_index t d index =
   let bucket = t.table.(index) in
