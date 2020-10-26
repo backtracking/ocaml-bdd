@@ -1,7 +1,8 @@
 (library
   (name bdd)
   (modules bdd)
-  (public_name bdd))
+  (public_name bdd)
+  (libraries stdlib-shims))
 
 (library
   (name prop)

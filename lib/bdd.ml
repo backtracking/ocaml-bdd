@@ -251,7 +251,7 @@ module Bdd = struct
   type t = bdd
   let equal = (==)
   let hash b = b.tag
-  let compare b1 b2 = Pervasives.compare b1.tag b2.tag
+  let compare b1 b2 = Stdlib.compare b1.tag b2.tag
 end
 module H1 = Hashtbl.Make(Bdd)
 

@@ -7,6 +7,7 @@ homepage: "https://www.lri.fr/~filliatr/software.en.html"
 bug-reports: "https://github.com/backtracking/ocaml-bdd/issues"
 depends: [
   "dune" {build}
+  "stdlib-shims"
 ]
 build: [
   ["dune" "subst"] {pinned}
