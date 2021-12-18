@@ -86,3 +86,12 @@ let () = check_count_sat "(A \\/ ~A) /\\ (B \\/ ~B)" 4L
 
 let () = print_endline "all tests successfully completed"
 
+let x1 = B.mk_var 1
+let () = assert (B.restrict x1 1 true == B.one)
+let () = assert (B.restrict x1 1 false == B.zero)
+let x2 = B.mk_var 2
+let e12 = B.mk_and (B.mk_imp x1 x2) (B.mk_imp x2 x1) (* x1 <-> x2 *)
+let () = assert (B.restrict e12 1 true == x2)
+let () = assert (B.restrict e12 2 true == x1)
+let () = assert (B.restrict e12 1 false == B.mk_not x2)
+
