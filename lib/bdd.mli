@@ -87,6 +87,8 @@ module type BDD = sig
   val restriction : t -> t -> t
 
   val restrict : t -> variable -> bool -> t
+   (** [restrict t v b] is the bdd for [t[b/v]], that is, [t] where
+       variable [v] is assigned the truth value [b]. *)
 
   val build : formula -> t
     (** Builds a bdd from a propositional formula [f].
