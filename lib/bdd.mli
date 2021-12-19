@@ -76,7 +76,9 @@ module type BDD = sig
   val mk_and : t -> t -> t
   val mk_or : t -> t -> t
   val mk_imp : t -> t -> t
-    (** Builds bdds for negation, conjunction, disjunction and implication. *)
+  val mk_iff : t -> t -> t
+    (** Builds bdds for negation, conjunction, disjunction, implication,
+        and logical equivalence. *)
 
   (** Generic binary operator constructor *)
 
