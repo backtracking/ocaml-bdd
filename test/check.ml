@@ -95,3 +95,17 @@ let () = assert (B.restrict e12 1 true == x2)
 let () = assert (B.restrict e12 2 true == x1)
 let () = assert (B.restrict e12 1 false == B.mk_not x2)
 
+let f1 = of_formula "(A & (B \\/ C))"
+let g1 = of_formula "A \\/ C"
+
+let f1' = B.constrain f1 g1
+let () = assert B.(mk_imp (mk_and f1 g1) f1' == one)
+let () = assert B.(mk_imp f1' (mk_or f1 (mk_not g1)) == one)
+let nf1' = B.(constrain f1 (mk_not g1))
+let () = assert
+  B.(mk_iff f1 (mk_or (mk_and g1 f1') (mk_and (mk_not g1) nf1')) == one)
+
+let f1' = B.restriction f1 g1
+let ()= assert B.(mk_imp (mk_and f1 g1) f1' == one)
+let ()= assert B.(mk_imp f1' (mk_or f1 (mk_not g1)) == one)
+
