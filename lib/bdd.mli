@@ -76,15 +76,34 @@ module type BDD = sig
   val mk_and : t -> t -> t
   val mk_or : t -> t -> t
   val mk_imp : t -> t -> t
-    (** Builds bdds for negation, conjunction, disjunction and implication. *)
+  val mk_iff : t -> t -> t
+    (** Builds bdds for negation, conjunction, disjunction, implication,
+        and logical equivalence. *)
 
   (** Generic binary operator constructor *)
 
   val apply : (bool -> bool -> bool) -> t -> t -> t
 
   val constrain : t -> t -> t
+    (** [constrain f g] is the generalized cofactor, sometimes written
+        [f ↓ g]. It is defined for any function [g <> false] so that
+        [f = (g /\ (f ↓ g)) \/ (~g /\ (f ↓ ~g))]. Setting [g] to a variable [x]
+        gives the classical Shannon cofactors:
+        [f = (x /\ (f ↓ x)) \/ (~x /\ (f ↓ ~x))].
+        For [f' = constrain f g], [f' xs = f xs] if [g xs], the graph of
+        [f'] is often simper than that of [f], but not always.
+        Note also that [(∃xs, (α ↓ β)(xs)) = (∃xs, (α /\ β)(xs))], but
+        [constrain] is, in general, less costly to calculate than [mk_and].
+        See, e.g., Raymond 2008,
+        "Synchronous program verification with Lustre/Lesar", §7.9. *)
 
   val restriction : t -> t -> t
+    (** For [f' = restriction f g], [f' xs = f xs] if [g xs], and the graph of
+        [f'] is a subset of that of [f].
+        I.e., [f'] is a smaller version of [f] for input vectors in the
+        "care set" [g].
+        See, e.g., Raymond 2008,
+        "Synchronous program verification with Lustre/Lesar", §7.9. *)
 
   val restrict : t -> variable -> bool -> t
    (** [restrict t v b] is the bdd for [t[b/v]], that is, [t] where

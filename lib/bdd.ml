@@ -42,6 +42,7 @@ module type BDD = sig
   val mk_and : t -> t -> t
   val mk_or : t -> t -> t
   val mk_imp : t -> t -> t
+  val mk_iff : t -> t -> t
   val apply : (bool -> bool -> bool) -> t -> t -> t
   val constrain : t -> t -> t
   val restriction : t -> t -> t
