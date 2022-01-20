@@ -33,6 +33,11 @@
   (libraries prop unix))
 
 (executable
+  (name quant_elim)
+  (modules quant_elim)
+  (libraries bdd))
+
+(executable
   (name bench_prop_cli)
   (modules bench_prop_cli)
   (libraries prop))
