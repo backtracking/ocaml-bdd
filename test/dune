@@ -1,11 +1,7 @@
-(executable
+(test
   (name check)
   (modules check)
   (libraries bdd prop))
-
-(alias
-  (name runtest)
-  (action (run ./check.exe)))
 
 (executable
   (name test)
