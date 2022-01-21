@@ -82,8 +82,14 @@ let print_var = print_var
 
 let get_max_var () = max_var
 
+(* The type of BDD nodes *)
 type bdd = { tag: int; node : view }
 and view = Zero | One | Node of variable * bdd (*low*) * bdd (*high*)
+
+(* Notes:
+   - Variables are ordered as integers, i.e. variable indices increase
+     as we descend in the BDD.
+   - A node is created using function `mk` below. *)
 
 type t = bdd (* export *)
 
@@ -239,6 +245,11 @@ let high b = match b.node with
 
 let mk v ~low ~high =
   if low == high then low else hashcons_node v low high
+
+(* Note: `mk` ensures that BDDs are reduced and maximally shared.
+   But it *does not* ensure that BDDs are ordered. This is ensured by
+   the various functions below. See for instance the code of `gapply`
+   and the way it compares variables before proceeding recursively. *)
 
 let make v ~low ~high =
   if v < 1 || v > max_var then invalid_arg "Bdd.make";
