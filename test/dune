@@ -28,7 +28,7 @@
   (modules bdd_sat)
   (libraries prop unix))
 
-(executable
+(test
   (name quant_elim)
   (modules quant_elim)
   (libraries bdd))

@@ -1,5 +1,4 @@
 
-
 let x = 1
 let y = 2
 let z = 3
@@ -19,7 +18,7 @@ module B = Bdd.Make(struct
 
 open Format
 
-let test () =
+let () =
   (* x /\ y *)
   let andxy = B.mk_and (B.mk_var x) (B.mk_var y) in
   (* x \/ y *)
@@ -30,22 +29,26 @@ let test () =
   let oryz = B.mk_or (B.mk_var y) (B.mk_var z) in
   let b = B.mk_exist ((==) y) andxy in
   printf "exists y. x /\\ y ===> @[%a@]@." B.print b;
+  assert (b == B.mk_var x);
   let b = B.mk_exist ((==) y) orxy in
   printf "exists y. x \\/ y ===> @[%a@]@." B.print b;
+  assert (b == B.one);
   let b = B.mk_exist ((==) y) andyz in
   printf "exists y. y /\\ z ===> @[%a@]@." B.print b;
+  assert (b == B.mk_var z);
   let b = B.mk_exist ((==) y) oryz in
   printf "exists y. y \\/ z ===> @[%a@]@." B.print b;
+  assert (b == B.one);
   let b = B.mk_forall ((==) y) andxy in
   printf "forall y. x /\\ y ===> @[%a@]@." B.print b;
+  assert (b == B.zero);
   let b = B.mk_forall ((==) y) orxy in
   printf "forall y. x \\/ y ===> @[%a@]@." B.print b;
+  assert (b == B.mk_var x);
   let b = B.mk_forall ((==) y) andyz in
   printf "forall y. y /\\ z ===> @[%a@]@." B.print b;
+  assert (b == B.zero);
   let b = B.mk_forall ((==) y) oryz in
   printf "forall y. y \\/ z ===> @[%a@]@." B.print b;
+  assert (b == B.mk_var z);
   ()
-
-
-
-let () = test ()
