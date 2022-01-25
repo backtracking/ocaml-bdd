@@ -80,6 +80,17 @@ module type BDD = sig
     (** Builds bdds for negation, conjunction, disjunction, implication,
         and logical equivalence. *)
 
+  (** Quantifier elimination *)
+
+  val mk_exist : (variable -> bool) -> t -> t
+  val mk_forall : (variable -> bool) -> t -> t
+  (** [mk_exists f b] (resp. [mk_forall f b]) quantifies bdd [b] over
+     all variables [v] for which [f v] holds. For example: [mk_exists
+     x. x /\ y] produces [y], [mk_exists x. x \/ y] produces [one],
+     [mk_forall x. x /\ y] produces [zero] and [mk_forall x. x \/ y]
+     produces [y]. See [test/quant_elim.ml]. *)
+
+
   (** Generic binary operator constructor *)
 
   val apply : (bool -> bool -> bool) -> t -> t -> t
@@ -141,6 +152,9 @@ module type BDD = sig
   (** Pretty printer *)
 
   val print_var : Format.formatter -> variable -> unit
+
+  val print : Format.formatter -> t -> unit
+  (** prints as compound if-then-else expressions *)
 
   val to_dot : t -> string
 

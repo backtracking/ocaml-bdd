@@ -24,6 +24,7 @@ Many executables:
 - `test`: tests producing graphical output - you'll need the `graphviz` and `gv` packages from your distribution
 - `tiling`
 - `bdd_sat`: a propositional tautology checker using `bdd`
+- `quant_elim`: simple tests for quantifier elimination
 - `queen`: computes the number of solutions to the n-queens problem, using a propositional formula (this is not an efficient way to solve this problem, simply another way to test the `bdd` library)
 - `path`
 - `check`: a quick check

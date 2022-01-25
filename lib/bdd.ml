@@ -43,6 +43,8 @@ module type BDD = sig
   val mk_or : t -> t -> t
   val mk_imp : t -> t -> t
   val mk_iff : t -> t -> t
+  val mk_exist : (variable -> bool) -> t -> t
+  val mk_forall : (variable -> bool) -> t -> t
   val apply : (bool -> bool -> bool) -> t -> t -> t
   val constrain : t -> t -> t
   val restriction : t -> t -> t
@@ -55,6 +57,7 @@ module type BDD = sig
   val random_sat : t -> (variable * bool) list
   val all_sat : t -> (variable * bool) list list
   val print_var : Format.formatter -> variable -> unit
+  val print : Format.formatter -> t -> unit
   val to_dot : t -> string
   val print_to_dot : t -> file:string -> unit
   val display : t -> unit
@@ -94,6 +97,14 @@ and view = Zero | One | Node of variable * bdd (*low*) * bdd (*high*)
 type t = bdd (* export *)
 
 let view b = b.node
+
+let rec print fmt b =
+  match b.node with
+  | Zero -> Format.fprintf fmt "false"
+  | One  -> Format.fprintf fmt "true"
+  | Node(v,l,h) ->
+     Format.fprintf fmt "@[<hv 2>if %a@ then %a@ else %a@]" print_var v print h print l
+
 
 (* unused
 let equal x y = match x, y with
@@ -379,6 +390,36 @@ let mk_and = gapply Op_and
 let mk_or = gapply Op_or
 let mk_imp = gapply Op_imp
 let mk_iff = gapply (Op_any (fun b1 b2 -> b1 == b2))
+
+
+
+(** {2 quantifier elimination} *)
+
+let rec quantifier_elim cache op filter b =
+  try
+    H1.find cache b
+  with Not_found ->
+    let res = match b.node with
+      | Zero | One -> b
+      | Node(v,l,h) ->
+         let low = quantifier_elim cache op filter l in
+         let high = quantifier_elim cache op filter h in
+         if filter v then
+           op low high
+         else
+           mk v ~low ~high
+    in
+    H1.add cache b res;
+    res
+
+
+let mk_exist filter b =
+  let cache = H1.create cache_default_size in
+  quantifier_elim cache mk_or filter b
+
+let mk_forall filter b =
+  let cache = H1.create cache_default_size in
+  quantifier_elim cache mk_and filter b
 
 let apply f = gapply (Op_any f)
 
