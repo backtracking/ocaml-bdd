@@ -18,6 +18,8 @@ type variable = int
     (** A variable is an integer, ranging from 1 to [max_var] (within
         a BDD module). *)
 
+module BddVarMap : Map.S with type key = variable
+
 type formula =
   | Ffalse
   | Ftrue
@@ -90,6 +92,7 @@ module type BDD = sig
      [mk_forall x. x /\ y] produces [zero] and [mk_forall x. x \/ y]
      produces [y]. See [test/quant_elim.ml]. *)
 
+  val extract_known_values : t -> bool BddVarMap.t
 
   (** Generic binary operator constructor *)
 
@@ -155,6 +158,10 @@ module type BDD = sig
 
   val print : Format.formatter -> t -> unit
   (** prints as compound if-then-else expressions *)
+
+  val print_compact : Format.formatter -> t -> unit
+  (** prints as Boolean expressions, with fallback to if-then-else
+     expressions when nothing is more compact *)
 
   val to_dot : t -> string
 

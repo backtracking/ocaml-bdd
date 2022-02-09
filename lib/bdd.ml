@@ -16,6 +16,12 @@
 
 type variable = int (* 1..max_var *)
 
+module BddVarMap =
+  Map.Make(struct
+      type t = variable
+      let compare (x:variable) (y:variable) = compare x y
+    end)
+
 type formula =
   | Ffalse
   | Ftrue
@@ -45,6 +51,7 @@ module type BDD = sig
   val mk_iff : t -> t -> t
   val mk_exist : (variable -> bool) -> t -> t
   val mk_forall : (variable -> bool) -> t -> t
+  val extract_known_values : t -> bool BddVarMap.t
   val apply : (bool -> bool -> bool) -> t -> t -> t
   val constrain : t -> t -> t
   val restriction : t -> t -> t
@@ -58,6 +65,7 @@ module type BDD = sig
   val all_sat : t -> (variable * bool) list list
   val print_var : Format.formatter -> variable -> unit
   val print : Format.formatter -> t -> unit
+  val print_compact : Format.formatter -> t -> unit
   val to_dot : t -> string
   val print_to_dot : t -> file:string -> unit
   val display : t -> unit
@@ -85,14 +93,8 @@ let print_var = print_var
 
 let get_max_var () = max_var
 
-(* The type of BDD nodes *)
 type bdd = { tag: int; node : view }
 and view = Zero | One | Node of variable * bdd (*low*) * bdd (*high*)
-
-(* Notes:
-   - Variables are ordered as integers, i.e. variable indices increase
-     as we descend in the BDD.
-   - A node is created using function `mk` below. *)
 
 type t = bdd (* export *)
 
@@ -104,6 +106,31 @@ let rec print fmt b =
   | One  -> Format.fprintf fmt "true"
   | Node(v,l,h) ->
      Format.fprintf fmt "@[<hv 2>if %a@ then %a@ else %a@]" print_var v print h print l
+
+let rec print_compact fmt b =
+  match b.node with
+  | Zero -> Format.fprintf fmt "false"
+  | One  -> Format.fprintf fmt "true"
+  | Node(v,{node=Zero;_},{node=One;_}) ->
+     (* if v then 1 else 0 --> v *)
+     Format.fprintf fmt "%a" print_var v
+  | Node(v,{node=One;_},{node=Zero;_}) ->
+     (* if v then 0 else 1 --> !v *)
+     Format.fprintf fmt "!%a" print_var v
+  | Node(v,{node=Zero;_},h) ->
+     (* if v then h else 0 --> v /\ h *)
+     Format.fprintf fmt "@[%a /\\@ %a@]" print_var v print_compact h
+  | Node(v,{node=One;_},h) ->
+     (* if v then h else 1 --> !v \/ h *)
+     Format.fprintf fmt "@[!%a \\/@ %a@]" print_var v print_compact h
+  | Node(v,l,{node=Zero;_}) ->
+     (* if v then 0 else l --> !v /\ l *)
+     Format.fprintf fmt "@[!%a /\\@ %a@]" print_var v print_compact l
+  | Node(v,l,{node=One;_}) ->
+     (* if v then 1 else l --> v \/ l *)
+     Format.fprintf fmt "@[%a \\/@ %a@]" print_var v print_compact l
+  | Node(v,l,h) ->
+     Format.fprintf fmt "@[<hv 2>if %a@ then %a@ else %a@]" print_var v print_compact h print_compact l
 
 
 (* unused
@@ -256,11 +283,6 @@ let high b = match b.node with
 
 let mk v ~low ~high =
   if low == high then low else hashcons_node v low high
-
-(* Note: `mk` ensures that BDDs are reduced and maximally shared.
-   But it *does not* ensure that BDDs are ordered. This is ensured by
-   the various functions below. See for instance the code of `gapply`
-   and the way it compares variables before proceeding recursively. *)
 
 let make v ~low ~high =
   if v < 1 || v > max_var then invalid_arg "Bdd.make";
@@ -420,6 +442,41 @@ let mk_exist filter b =
 let mk_forall filter b =
   let cache = H1.create cache_default_size in
   quantifier_elim cache mk_and filter b
+
+
+let rec extract_known_values cache b =
+  try
+    H1.find cache b
+  with Not_found ->
+    let res = match b.node with
+      | Zero | One -> BddVarMap.empty
+      | Node(v,{node=Zero;_},h) ->
+         (* if v then h else 0 --> v /\ h *)
+         BddVarMap.add v true (extract_known_values cache h)
+      | Node(v,l,{node=Zero;_}) ->
+         (* if v then 0 else l --> !v /\ l *)
+         BddVarMap.add v false (extract_known_values cache l)
+      | Node(_,l,h) ->
+         let m1 = extract_known_values cache l in
+         let m2 = extract_known_values cache h in
+         let merge_bool _ b1 b2 =
+           if b1=b2 then Some b1 else None
+         in
+         BddVarMap.union merge_bool m1 m2
+    in
+    H1.add cache b res;
+    res
+
+let extract_known_values b =
+  let cache = H1.create cache_default_size in
+  extract_known_values cache b
+
+
+
+
+
+
+
 
 let apply f = gapply (Op_any f)
 
