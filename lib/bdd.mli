@@ -19,6 +19,8 @@ type variable = int
         a BDD module). *)
 
 module BddVarMap : Map.S with type key = variable
+(** Module providing general-purpose map data structures indexed by
+   BDD variables. *)
 
 type formula =
   | Ffalse
@@ -93,6 +95,11 @@ module type BDD = sig
      produces [y]. See [test/quant_elim.ml]. *)
 
   val extract_known_values : t -> bool BddVarMap.t
+  (** [extract_known_values b] returns a map indexed by variables,
+     associated to Boolean values.  In that map, a variable [v] is
+     associated to [true] (resp. [false]) if bdd [b] entails [v] to
+     have this value, that is [b -> v=true] (resp [b -> v=false]) is a
+     tautology. *)
 
   (** Generic binary operator constructor *)
 
