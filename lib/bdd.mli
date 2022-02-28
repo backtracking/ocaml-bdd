@@ -133,6 +133,7 @@ module type BDD = sig
   val tautology : t -> bool
     (** Checks if a bdd is a tautology i.e. equal to [one] *)
 
+  val count_sat_int : t -> int
   val count_sat : t -> Int64.t
     (** Counts the number of different ways to satisfy a bdd. *)
 

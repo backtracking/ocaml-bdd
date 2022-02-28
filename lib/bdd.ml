@@ -52,6 +52,7 @@ module type BDD = sig
   val build : formula -> t
   val is_sat : t -> bool
   val tautology : t -> bool
+  val count_sat_int : t -> int
   val count_sat : t -> Int64.t
   val any_sat : t -> (variable * bool) list
   val random_sat : t -> (variable * bool) list
@@ -525,6 +526,25 @@ let rec int64_two_to = function
       let r = int64_two_to (n/2) in
       let r2 = Int64.mul r r in
       if n mod 2 == 0 then r2 else Int64.mul (Int64.of_int 2) r2
+
+let count_sat_int b =
+  let cache = H1.create cache_default_size in
+  let rec count b =
+    try
+      H1.find cache b
+    with Not_found ->
+      let n = match b.node with
+	| Zero -> 0
+	| One -> 1
+	| Node (v, l, h) ->
+	    let dvl = var l - v - 1 in
+	    let dvh = var h - v - 1 in
+	    (1 lsl dvl) * count l + (1 lsl dvh) * count h
+      in
+      H1.add cache b n;
+      n
+  in
+  (1 lsl (var b - 1)) * count b
 
 let count_sat b =
   let cache = H1.create cache_default_size in

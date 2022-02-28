@@ -21,7 +21,7 @@ let n = match int_of_string Sys.argv.(1) with
   | n when n <= 0 -> failwith "size should be greater than 0"
   | n -> n
 
-include (val Bdd.make (n * n))
+include (val Bdd.make ~size:60000 (n * n))
 
 let fold_and i j f =
   let rec mk k = if k > j then one else mk_and (f k) (mk (k+1)) in
@@ -35,44 +35,43 @@ let fold_for i j f =
   let rec fold k acc = if k > j then acc else fold (k+1) (f k acc) in
   fold i
 
+let fold_for_rev i j f =
+  let rec fold k acc = if k < j then acc else fold (k-1) (f k acc) in
+  fold i
+
 (* 0..n-1 x 0..n-1 -> 1..n x n *)
 let vars =
   Array.init n (fun i -> Array.init n (fun j -> mk_var (1 + n * i + j)))
 let var i j = vars.(i).(j)
 
-let constraints i j =
-  let b1 =
-    fold_and 0 (n-1)
-      (fun l -> if l = j then one else mk_not (var i l))
-  in
-  let b2 =
-    fold_and 0 (n-1)
-      (fun k -> if k = i then one else mk_not (var k j))
-  in
-  let b3 =
-    fold_and 0 (n-1)
-      (fun k ->
-	 let ll = j+k-i in
-	 if ll >= 0 && ll < n && k <> i then mk_not (var k ll) else one)
-  in
-  let b4 =
-    fold_and 0 (n-1)
-      (fun k ->
-	 let ll = j+i-k in
-	 if ll >= 0 && ll < n && k <> i then mk_not (var k ll) else one)
-  in
-  mk_and b1 (mk_and b2 (mk_and b3 b4))
-
+let queens_s i j =
+  let var i j = mk_var (1 + i * n + j) in
+  fold_for_rev (n-1) 0 (fun row bdd ->
+      if i = row then
+        fold_for_rev (n-1) 0 (fun col bdd ->
+            if j = col then
+              mk_and bdd (var row col)
+            else
+              mk_and bdd (mk_not (var row col))
+          ) bdd
+      else
+        let d = abs (i - row) in
+        let bdd = if j + d < n then
+                    mk_and bdd (mk_not (var row (j + d))) else bdd in
+        let bdd = mk_and bdd (mk_not (var row j)) in
+        if d <= j then
+          mk_and bdd (mk_not (var row (j - d))) else bdd
+    ) one
+let queens_r i =
+  fold_for 0 (n-1) (fun j bdd -> mk_or bdd (queens_s i j)) zero
 let bdd =
-  fold_and 0 (n-1) (fun i -> fold_or 0 (n-1) (fun j -> var i j))
+  fold_for 0 (n-1) (fun i bdd -> mk_and bdd (queens_r i)) one
 
-let bdd =
-  fold_for 0 (n-1)
-    (fun i acc ->
-       fold_for 0 (n-1)
-	 (fun j acc ->
-	    mk_and acc (mk_imp (var i j) (constraints i j)))
-	 acc)
-    bdd
+let () = printf "There are %d solutions@." (count_sat_int bdd)
 
-let () = printf "There are %Ld solutions@." (count_sat bdd)
+let () = exit 0
+let () =
+  let print v (tl, e, sum, smallest, median, biggest) =
+    printf "v=%d: size=%d #entries=%d sum=%d small/med/big=%d/%d/%d@."
+      v tl e sum smallest median biggest in
+  Array.iteri print (stats ())

@@ -1,3 +1,6 @@
+
+ o new function `count_sat_int`
+
 November 13, 2018 (VERSION 0.4)
 -------------------------------
  o no more set_max_var -> a functor Make and a function 'make' instead
