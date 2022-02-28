@@ -1,4 +1,12 @@
 
+
+ o new functions `mk_exists` and `mk_forall` for quantifier elimination
+ o new function `print` to print a BDD as nested "if..then..else"
+ o new function `print_compact` to print a BDD in a compact form using
+   conjunction and disjunction when possible, and falling back to
+   "if..then..else" otherwise
+ o new function `extract_known_values` to retrieve from a bdd the set of
+   variables whose Boolean value is entailed by the bdd.
  o new function `count_sat_int`
 
 November 13, 2018 (VERSION 0.4)

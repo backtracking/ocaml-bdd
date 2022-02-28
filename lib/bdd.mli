@@ -18,6 +18,10 @@ type variable = int
     (** A variable is an integer, ranging from 1 to [max_var] (within
         a BDD module). *)
 
+module BddVarMap : Map.S with type key = variable
+(** Module providing general-purpose map data structures indexed by
+   BDD variables. *)
+
 type formula =
   | Ffalse
   | Ftrue
@@ -90,6 +94,12 @@ module type BDD = sig
      [mk_forall x. x /\ y] produces [zero] and [mk_forall x. x \/ y]
      produces [y]. See [test/quant_elim.ml]. *)
 
+  val extract_known_values : t -> bool BddVarMap.t
+  (** [extract_known_values b] returns a map indexed by variables,
+     associated to Boolean values.  In that map, a variable [v] is
+     associated to [true] (resp. [false]) if bdd [b] entails [v] to
+     have this value, that is [b -> v=true] (resp [b -> v=false]) is a
+     tautology. *)
 
   (** Generic binary operator constructor *)
 
@@ -156,6 +166,10 @@ module type BDD = sig
 
   val print : Format.formatter -> t -> unit
   (** prints as compound if-then-else expressions *)
+
+  val print_compact : Format.formatter -> t -> unit
+  (** prints as Boolean expressions, with fallback to if-then-else
+     expressions when nothing is more compact *)
 
   val to_dot : t -> string
 
