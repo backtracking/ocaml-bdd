@@ -31,6 +31,7 @@ type formula =
   | Fimp of formula * formula
   | Fiff of formula * formula
   | Fnot of formula
+  | Fite of formula * formula * formula (* if f1 then f2 else f3 *)
 
 module type BDD = sig
   val get_max_var : unit -> int
@@ -57,8 +58,12 @@ module type BDD = sig
   val restriction : t -> t -> t
   val restrict : t -> variable -> bool -> t
   val build : formula -> t
+  val as_formula : t -> formula
+  val as_compact_formula : t -> formula
   val is_sat : t -> bool
   val tautology : t -> bool
+  val equivalent : t -> t -> bool
+  val entails : t -> t -> bool
   val count_sat_int : t -> int
   val count_sat : t -> Int64.t
   val any_sat : t -> (variable * bool) list
@@ -414,6 +419,8 @@ let mk_or = gapply Op_or
 let mk_imp = gapply Op_imp
 let mk_iff = gapply (Op_any (fun b1 b2 -> b1 == b2))
 
+let mk_ite f1 f2 f3 =
+  mk_and (mk_imp f1 f2) (mk_imp (mk_not f1) f3)
 
 
 (** {2 quantifier elimination} *)
@@ -571,12 +578,67 @@ let rec build = function
   | Fimp (f1, f2) -> mk_imp (build f1) (build f2)
   | Fiff (f1, f2) -> mk_iff (build f1) (build f2)
   | Fnot f -> mk_not (build f)
+  | Fite (f1, f2, f3) -> mk_ite (build f1) (build f2) (build f3)
+
+let rec as_formula b =
+  match b.node with
+  | Zero -> Ffalse
+  | One  -> Ftrue
+  | Node(v,l,h) -> Fite (Fvar v, as_formula h, as_formula l)
+
+let rec as_compact_formula b =
+  match b.node with
+  | Zero -> Ffalse
+  | One  -> Ftrue
+  | Node(v,{node=Zero;_},{node=One;_}) ->
+     (* if v then 1 else 0 --> v *)
+     Fvar v
+  | Node(v,{node=One;_},{node=Zero;_}) ->
+     (* if v then 0 else 1 --> !v *)
+     Fnot (Fvar v)
+  | Node(v,{node=Zero;_},h) ->
+     (* if v then h else 0 --> v /\ h *)
+     Fand (Fvar v, as_compact_formula h)
+  | Node(v,{node=One;_},h) ->
+     (* if v then h else 1 --> !v \/ h *)
+     For (Fnot (Fvar v), as_compact_formula h)
+  | Node(v,l,{node=Zero;_}) ->
+     (* if v then 0 else l --> !v /\ l *)
+     Fand (Fnot (Fvar v), as_compact_formula l)
+  | Node(v,l,{node=One;_}) ->
+     (* if v then 1 else l --> v \/ l *)
+     For (Fvar v, as_compact_formula l)
+  | Node(v,l,h) ->
+     Fite (Fvar v, as_compact_formula h, as_compact_formula l)
+
+let mk_Fand f1 f2 =
+  match f2 with
+  | Ftrue -> f1
+  | _ -> Fand(f1,f2)
+
+let as_compact_formula b =
+  let m = extract_known_values b in
+  let reduced_bdd =
+    mk_exist (fun v ->
+        try let _ = BddVarMap.find v m in true
+        with Not_found -> false) b
+  in
+  let f = as_compact_formula reduced_bdd in
+  BddVarMap.fold
+    (fun v b f ->
+      mk_Fand (if b then Fvar v else Fnot(Fvar v)) f )
+    m f
+
 
 (* satisfiability *)
 
 let is_sat b = b.node != Zero
 
 let tautology b = b.node == One
+
+let equivalent b1 b2 = b1 == b2
+
+let entails b1 b2 = tautology (mk_imp b1 b2)
 
 let rec int64_two_to = function
   | 0 ->
