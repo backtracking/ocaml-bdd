@@ -461,9 +461,11 @@ let rec extract_known_values cache b =
          let m1 = extract_known_values cache l in
          let m2 = extract_known_values cache h in
          let merge_bool _ b1 b2 =
-           if b1=b2 then Some b1 else None
+           match b1, b2 with
+           | Some b1, Some b2 when b1=b2 -> Some b1
+           | _ -> None
          in
-         BddVarMap.union merge_bool m1 m2
+         BddVarMap.merge merge_bool m1 m2
     in
     H1.add cache b res;
     res
