@@ -31,6 +31,7 @@ type formula =
   | Fimp of formula * formula
   | Fiff of formula * formula
   | Fnot of formula
+  | Fite of formula * formula * formula (* if f1 then f2 else f3 *)
 
 module type BDD = sig
   (** Binary Decision Diagrams (BDDs) *)
@@ -135,6 +136,17 @@ module type BDD = sig
         Raises [Invalid_argument] if [f] contains a variable out of
         [1..max_var]. *)
 
+  val as_formula : t -> formula
+  (** Builds a propositional formula from the given BDD. The returned
+     formula is only build using if-then-else ([Fite]) and variables
+     ([Fvar]).  *)
+
+  val as_compact_formula : t -> formula
+  (** Builds a ``compact'' formula from the given BDD. The returned
+     formula is only build using conjunctions, disjunctions,
+     variables, negations of variables, and if-then-else where the if
+     condition is a variable.  *)
+
   (** Satisfiability *)
 
   val is_sat : t -> bool
@@ -142,6 +154,13 @@ module type BDD = sig
 
   val tautology : t -> bool
     (** Checks if a bdd is a tautology i.e. equal to [one] *)
+
+  val equivalent : t -> t -> bool
+    (** Checks if a bdd is equivalent to another bdd *)
+
+  val entails : t -> t -> bool
+    (** [entails b1 b2] checks that [b1] entails [b2], in other words
+        [b1] implies [b2] *)
 
   val count_sat_int : t -> int
   val count_sat : t -> Int64.t
