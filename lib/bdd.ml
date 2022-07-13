@@ -102,6 +102,11 @@ let get_max_var () = max_var
 type bdd = { tag: int; node : view }
 and view = Zero | One | Node of variable * bdd (*low*) * bdd (*high*)
 
+(* Notes:
+   - Variables are ordered as integers, i.e. variable indices increase
+     as we descend in the BDD.
+   - A node is created using function `mk` below. *)
+
 type t = bdd (* export *)
 
 let view b = b.node
@@ -287,6 +292,10 @@ let high b = match b.node with
   | Zero | One -> invalid_arg "Bdd.low"
   | Node (_, _, h) -> h
 
+(* Note: `mk` ensures that BDDs are reduced and maximally shared.
+   But it *does not* ensure that BDDs are ordered. This is ensured by
+   the various functions below. See for instance the code of `gapply`
+   and the way it compares variables before proceeding recursively. *)
 let mk v ~low ~high =
   if low == high then low else hashcons_node v low high
 
@@ -422,7 +431,6 @@ let mk_iff = gapply (Op_any (fun b1 b2 -> b1 == b2))
 let mk_ite f1 f2 f3 =
   mk_and (mk_imp f1 f2) (mk_imp (mk_not f1) f3)
 
-
 (** {2 quantifier elimination} *)
 
 let rec quantifier_elim cache op filter b =
@@ -458,13 +466,13 @@ let rec extract_known_values cache b =
   with Not_found ->
     let res = match b.node with
       | Zero | One -> BddVarMap.empty
-      | Node(v,{node=Zero;_},h) ->
+      | Node(v, {node=Zero;_}, h) ->
          (* if v then h else 0 --> v /\ h *)
          BddVarMap.add v true (extract_known_values cache h)
-      | Node(v,l,{node=Zero;_}) ->
+      | Node(v, l, {node=Zero;_}) ->
          (* if v then 0 else l --> !v /\ l *)
          BddVarMap.add v false (extract_known_values cache l)
-      | Node(_,l,h) ->
+      | Node(_, l, h) ->
          let m1 = extract_known_values cache l in
          let m2 = extract_known_values cache h in
          let merge_bool _ b1 b2 =
@@ -480,13 +488,6 @@ let rec extract_known_values cache b =
 let extract_known_values b =
   let cache = H1.create cache_default_size in
   extract_known_values cache b
-
-
-
-
-
-
-
 
 let apply f = gapply (Op_any f)
 
