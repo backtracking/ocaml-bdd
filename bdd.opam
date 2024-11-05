@@ -2,17 +2,19 @@ opam-version: "2.0"
 synopsis: "Implementation of BDD"
 maintainer: "Jean-Christophe.Filliatre@lri.fr"
 authors: "Jean-Christophe Filliâtre"
-license: "LGPL-2.1"
+license: "LGPL-2.1-only"
 homepage: "https://www.lri.fr/~filliatr/software.en.html"
 bug-reports: "https://github.com/backtracking/ocaml-bdd/issues"
 depends: [
   "dune" {build}
   "stdlib-shims"
+  "menhir"
+  "odoc" {with-doc}
 ]
 build: [
   ["dune" "subst"] {pinned}
   ["dune" "build" "@install" "-p" name "-j" jobs]
-  [with-doc "dune" "build" "@doc" "-p" name]
-  [with-test "dune" "runtest" "-p" name]
+  ["dune" "build" "@doc" "-p" name] {with-doc}
+  ["dune" "runtest" "-p" name] {with-test}
 ]
 dev-repo: "git://github.com/backtracking/ocaml-bdd.git"

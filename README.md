@@ -28,7 +28,7 @@ Many executables:
 - `queen`: computes the number of solutions to the n-queens problem, using a propositional formula (this is not an efficient way to solve this problem, simply another way to test the `bdd` library)
 - `path`
 - `check`: a quick check
-- `bench_prop_cli`: generate valide propositional formulae from command line
+- `bench_prop_cli`: generate valid propositional formulae from command line
 
 To run any of them, let's say `check`, do:
 
@@ -39,8 +39,10 @@ dune exec test/check.exe
 You can combine some of them, e.g.:
 
 ```sh
-dune exec test/bench_prop_cli -pigeon-p 7 | dune exec test/bdd_sat.exe
+dune exec test/bench_prop_cli.exe -- -pigeon-p 7 | dune exec test/bdd_sat.exe
 ```
+
+You might need to set the environment variable `DUNE_CONFIG__GLOBAL_LOCK` to `disabled` to allow multiple dune instance running.
 
 ## Test
 
