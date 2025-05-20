@@ -1,9 +1,9 @@
 opam-version: "2.0"
 synopsis: "Implementation of BDD"
-maintainer: "Jean-Christophe.Filliatre@lri.fr"
+maintainer: "Jean-Christophe.Filliatre@cnrs.fr"
 authors: "Jean-Christophe Filliâtre"
-license: "LGPL-2.1"
-homepage: "https://www.lri.fr/~filliatr/software.en.html"
+license: "LGPL-2.1-only"
+homepage: "https://github.com/backtracking/ocaml-bdd"
 bug-reports: "https://github.com/backtracking/ocaml-bdd/issues"
 depends: [
   "dune" {build}

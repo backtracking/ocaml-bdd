@@ -1,4 +1,11 @@
 
+ o new function `print_dimacs` to print a bdd in DIMACS format
+ o new function `cnf_size` to compute the number of clauses of a
+   conjunctive normal form, that is the number of lines printed
+   by `print_dimacs`
+ o new function `nb_nodes` to compute the interbal size of a bdd
+ o new function `print_dot` to print in DOT format
+   (functions`to_dot` and `print_to_dot` are deprecated)
  o test/dimacs.ml: builds a BDD from a DIMACS file
  o new functions `mk_exists` and `mk_forall` for quantifier elimination
  o new function `print` to print a BDD as nested "if..then..else"
@@ -9,7 +16,7 @@
    variables whose Boolean value is entailed by the bdd.
  o new function `count_sat_int`
 
-November 13, 2018 (VERSION 0.4)
+November 13, 2018 (version 0.4)
 -------------------------------
  o no more set_max_var -> a functor Make and a function 'make' instead
  o new function restrict

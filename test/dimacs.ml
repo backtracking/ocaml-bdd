@@ -52,6 +52,8 @@ let bdd =
     | cl :: cll -> build (B.mk_and bdd (clause cl)) cll in
   build B.one cnf
 
+let () = Format.printf "BDD size = %d@." (B.nb_nodes bdd)
+
 open Format
 
 let () = match B.any_sat bdd with

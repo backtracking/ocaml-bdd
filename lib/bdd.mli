@@ -15,8 +15,8 @@
 (** Propositional formulas *)
 
 type variable = int
-    (** A variable is an integer, ranging from 1 to [max_var] (within
-        a BDD module). *)
+(** A variable is an integer, ranging from 1 to [max_var] (within
+    a BDD module). *)
 
 module BddVarMap : Map.S with type key = variable
 (** Module providing general-purpose map data structures indexed by
@@ -39,9 +39,9 @@ module type BDD = sig
   (** Number of variables *)
 
   val get_max_var : unit -> int
-    (** Returns the number of variables [max_var].
-        Default value is 0, which means that bdds cannot be created
-        until the module is initialized using [set_max_var]. *)
+  (** Returns the number of variables [max_var].
+      Default value is 0, which means that bdds cannot be created
+      until the module is initialized using [set_max_var]. *)
 
   (** The abstract type of BDD nodes *)
 
@@ -52,18 +52,18 @@ module type BDD = sig
   type view = Zero | One | Node of variable * t (*low*) * t (*high*)
 
   val view : t -> view
-    (** Displays a bdd as a tree. *)
+  (** Displays a bdd as a tree. *)
 
   (** Accessors *)
 
   val var : t -> variable
-      (** The root variable of a bdd.
-          Convention: [Zero] and [One] have variable [max_var+1] *)
+  (** The root variable of a bdd.
+      Convention: [Zero] and [One] have variable [max_var+1] *)
 
   val low : t -> t
   val high : t -> t
-      (** The low and high parts of a bdd, respectively.
-          [low] and [high] raise [Invalid_argument] on [Zero] and [One]. *)
+  (** The low and high parts of a bdd, respectively.
+      [low] and [high] raise [Invalid_argument] on [Zero] and [One]. *)
 
   (** Constructors *)
 
@@ -71,19 +71,19 @@ module type BDD = sig
   val one : t
 
   val make : variable -> low:t -> high:t -> t
-    (** Builds a bdd node.
-        Raises [Invalid_argument] is the variable is out of [1..max_var]. *)
+  (** Builds a bdd node.
+      Raises [Invalid_argument] is the variable is out of [1..max_var]. *)
 
   val mk_var : variable -> t
-    (** Builds the bdd reduced to a single variable. *)
+  (** Builds the bdd reduced to a single variable. *)
 
   val mk_not : t -> t
   val mk_and : t -> t -> t
   val mk_or : t -> t -> t
   val mk_imp : t -> t -> t
   val mk_iff : t -> t -> t
-    (** Builds bdds for negation, conjunction, disjunction, implication,
-        and logical equivalence. *)
+  (** Builds bdds for negation, conjunction, disjunction, implication,
+      and logical equivalence. *)
 
   (** Quantifier elimination *)
 
@@ -105,105 +105,134 @@ module type BDD = sig
   (** Generic binary operator constructor *)
 
   val apply : (bool -> bool -> bool) -> t -> t -> t
+  (** Applies the given Boolean function to two bdds.
+      Caveat: Do not use this function to compute the usual Boolean
+      operations (conjunction, disjunction, etc.). Use instead the
+      operations above ([mk_and], etc.), which are more efficient. *)
 
   val constrain : t -> t -> t
-    (** [constrain f g] is the generalized cofactor, sometimes written
-        [f ↓ g]. It is defined for any function [g <> false] so that
-        [f = (g /\ (f ↓ g)) \/ (~g /\ (f ↓ ~g))]. Setting [g] to a variable [x]
-        gives the classical Shannon cofactors:
-        [f = (x /\ (f ↓ x)) \/ (~x /\ (f ↓ ~x))].
-        For [f' = constrain f g], [f' xs = f xs] if [g xs], the graph of
-        [f'] is often simper than that of [f], but not always.
-        Note also that [(∃xs, (α ↓ β)(xs)) = (∃xs, (α /\ β)(xs))], but
-        [constrain] is, in general, less costly to calculate than [mk_and].
-        See, e.g., Raymond 2008,
-        "Synchronous program verification with Lustre/Lesar", §7.9. *)
+  (** [constrain f g] is the generalized cofactor, sometimes written
+      [f ↓ g]. It is defined for any function [g <> false] so that
+      [f = (g /\ (f ↓ g)) \/ (~g /\ (f ↓ ~g))]. Setting [g] to a variable [x]
+      gives the classical Shannon cofactors:
+      [f = (x /\ (f ↓ x)) \/ (~x /\ (f ↓ ~x))].
+      For [f' = constrain f g], [f' xs = f xs] if [g xs], the graph of
+      [f'] is often simper than that of [f], but not always.
+      Note also that [(∃xs, (α ↓ β)(xs)) = (∃xs, (α /\ β)(xs))], but
+      [constrain] is, in general, less costly to calculate than [mk_and].
+      See, e.g., Raymond 2008,
+      "Synchronous program verification with Lustre/Lesar", §7.9. *)
 
   val restriction : t -> t -> t
-    (** For [f' = restriction f g], [f' xs = f xs] if [g xs], and the graph of
-        [f'] is a subset of that of [f].
-        I.e., [f'] is a smaller version of [f] for input vectors in the
-        "care set" [g].
-        See, e.g., Raymond 2008,
-        "Synchronous program verification with Lustre/Lesar", §7.9. *)
+  (** For [f' = restriction f g], [f' xs = f xs] if [g xs], and the graph of
+      [f'] is a subset of that of [f].
+      I.e., [f'] is a smaller version of [f] for input vectors in the
+      "care set" [g].
+      See, e.g., Raymond 2008,
+      "Synchronous program verification with Lustre/Lesar", §7.9. *)
 
   val restrict : t -> variable -> bool -> t
-   (** [restrict t v b] is the bdd for [t[b/v]], that is, [t] where
-       variable [v] is assigned the truth value [b]. *)
+  (** [restrict t v b] is the bdd for [t[b/v]], that is, [t] where
+      variable [v] is assigned the truth value [b]. *)
 
   val build : formula -> t
-    (** Builds a bdd from a propositional formula [f].
-        Raises [Invalid_argument] if [f] contains a variable out of
-        [1..max_var]. *)
+  (** Builds a bdd from a propositional formula [f].
+      Raises [Invalid_argument] if [f] contains a variable out of
+      [1..max_var]. *)
 
   val as_formula : t -> formula
   (** Builds a propositional formula from the given BDD. The returned
-     formula is only build using if-then-else ([Fite]) and variables
-     ([Fvar]).  *)
+      formula is only build using if-then-else ([Fite]) and variables
+      ([Fvar]).  *)
 
   val as_compact_formula : t -> formula
   (** Builds a ``compact'' formula from the given BDD. The returned
-     formula is only build using conjunctions, disjunctions,
-     variables, negations of variables, and if-then-else where the if
-     condition is a variable.  *)
+      formula is only built using conjunctions, disjunctions,
+      variables, negations of variables, and if-then-else where the if
+      condition is a variable.  *)
 
   (** Satisfiability *)
 
   val is_sat : t -> bool
-    (** Checks if a bdd is satisfiable i.e. different from [zero] *)
+  (** Checks if a bdd is satisfiable i.e. different from [zero] *)
 
   val tautology : t -> bool
-    (** Checks if a bdd is a tautology i.e. equal to [one] *)
+  (** Checks if a bdd is a tautology i.e. equal to [one] *)
 
   val equivalent : t -> t -> bool
-    (** Checks if a bdd is equivalent to another bdd *)
+  (** Checks if a bdd is equivalent to another bdd *)
 
   val entails : t -> t -> bool
-    (** [entails b1 b2] checks that [b1] entails [b2], in other words
-        [b1] implies [b2] *)
+  (** [entails b1 b2] checks that [b1] entails [b2], in other words
+      [b1] implies [b2] *)
 
   val count_sat_int : t -> int
   val count_sat : t -> Int64.t
-    (** Counts the number of different ways to satisfy a bdd. *)
+  (** Counts the number of different ways to satisfy a bdd. *)
 
   val any_sat : t -> (variable * bool) list
-    (** Returns one truth assignment which satisfies a bdd, if any.
-        The result is chosen deterministically.
-        Raises [Not_found] if the bdd is [zero] *)
+  (** Returns one truth assignment which satisfies a bdd, if any.
+      The result is chosen deterministically.
+      Raises [Not_found] if the bdd is [zero] *)
 
   val random_sat : t -> (variable * bool) list
-    (** Returns one truth assignment which satisfies a bdd, if any.
-        The result is chosen randomly.
-        Raises [Not_found] if the bdd is [zero] *)
+  (** Returns one truth assignment which satisfies a bdd, if any.
+      The result is chosen randomly.
+      Raises [Not_found] if the bdd is [zero] *)
 
   val all_sat : t -> (variable * bool) list list
-    (** Returns all truth assignments which satisfy a bdd [b]. *)
+  (** Returns all truth assignments which satisfy a bdd [b]. *)
 
   (** Pretty printer *)
 
   val print_var : Format.formatter -> variable -> unit
 
   val print : Format.formatter -> t -> unit
-  (** prints as compound if-then-else expressions *)
+  (** Prints as compound if-then-else expressions *)
 
   val print_compact : Format.formatter -> t -> unit
-  (** prints as Boolean expressions, with fallback to if-then-else
-     expressions when nothing is more compact *)
+  (** Prints as Boolean expressions, with fallback to if-then-else
+      expressions when nothing is more compact *)
+
+  val cnf_size: t -> int
+  (** Returns the number of clauses when the bdd is printed in
+      conjunctive normal form. This is the number of lines when
+      the bdd is printed with function [print_dimacs] below, each
+      line having up to [max_var] literals. *)
+
+  val print_dimacs : Format.formatter -> t -> unit
+  (** Prints a bdd in conjunctive normal form using the DIMACS format.
+
+      Warning: The output may be exponential in the size of the bdd.
+      The number of clauses (that is, the number of lines printed)
+      is given by [cnf_size]. *)
+
+  val print_dot : Format.formatter -> t -> unit
+  (** Prints a DOT output of a given bdd. *)
 
   val to_dot : t -> string
+  (** @deprecated Use [print_dot] instead. *)
 
   val print_to_dot : t -> file:string -> unit
+  (** @deprecated Use [print_dot] instead. *)
 
   val display : t -> unit
-    (** displays the given bdd using a shell command "dot -Tps <file> | gv -" *)
+  (** Renders a given bdd using DOT and runs the shell command
+      "dot -Tps <file> | gv -" *)
 
   (** Stats *)
 
+  val nb_nodes: t -> int
+  (** Returns the number of internal nodes of the bdd (i.e. nodes
+      [Zero] and [One] are not counted). This is proportional to the
+      space used internally by the bdd (7 words per node). *)
+
   val stats : unit -> (int * int * int * int * int * int) array
-    (** Return statistics on the internal nodes tables (one for each variable).
-        The numbers are, in order:
-        table length, number of entries, sum of bucket lengths,
-        smallest bucket length, median bucket length, biggest bucket length. *)
+  (** Returns statistics on the internal nodes tables (one for each variable).
+      The numbers are, in order:
+      table length, number of entries, sum of bucket lengths,
+      smallest bucket length, median bucket length, biggest bucket length. *)
+
 end
 
 module Make(X: sig
@@ -216,9 +245,9 @@ val make : ?print_var:(Format.formatter -> variable -> unit)
            -> ?size:int
            -> int
            -> (module BDD)
-    (** Creates a BDD module with a given maximum number of variables.
-        Additionally, the size of the internal nodes table for each variable
-        can be specified. Each table has a default size (7001) and is
-        resized when necessary (i.e. when too many collisions occur).
-        The [print_var] argument can be used to associate names with variables
-        (by default it gives "x1", "x2", ...). *)
+(** Creates a BDD module with a given maximum number of variables.
+    Additionally, the size of the internal nodes table for each variable
+    can be specified. Each table has a default size (7001) and is
+    resized when necessary (i.e. when too many collisions occur).
+    The [print_var] argument can be used to associate names with variables
+    (by default it gives "x1", "x2", ...). *)

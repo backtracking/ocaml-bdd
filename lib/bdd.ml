@@ -72,9 +72,13 @@ module type BDD = sig
   val print_var : Format.formatter -> variable -> unit
   val print : Format.formatter -> t -> unit
   val print_compact : Format.formatter -> t -> unit
+  val cnf_size: t -> int
+  val print_dimacs : Format.formatter -> t -> unit
+  val print_dot : Format.formatter -> t -> unit
   val to_dot : t -> string
   val print_to_dot : t -> file:string -> unit
   val display : t -> unit
+  val nb_nodes : t -> int
   val stats : unit -> (int * int * int * int * int * int) array
 end
 
@@ -86,7 +90,7 @@ module Make(X: sig
   val size: int
   val max_var: int
 end) = struct
-    open X
+open X
 
 let rec power_2_above x n =
   if x >= n then x
@@ -728,13 +732,80 @@ let all_sat =
   in
   mk
 
+(** iter-like traversal of a bdd *)
+
+let iter ~zero:(zero: unit -> unit) ~one:(one: unit -> unit)
+         (f: variable -> low:t -> high:t -> unit)
+         (b: t) : unit =
+  let visited = H1.create cache_default_size in
+  let rec visit b =
+    if not (H1.mem visited b) then (
+      H1.add visited b ();
+      match b.node with
+      | Zero -> zero ()
+      | One  -> one  ()
+      | Node (v, low, high) -> f v ~low ~high; visit high; visit low
+    ) in
+  visit b
+
+let nb_nodes b =
+  let n = ref 0 in
+  iter ~zero:(fun () -> ()) ~one:(fun () -> ())
+    (fun _ ~low:_ ~high:_ -> incr n) b;
+ !n
+
+(** fold-like traversal of a bdd *)
+
+let fold ~(zero: 'a) ~(one: 'a)
+         (f: variable -> low:'a -> high:'a -> 'a) (b: t) : 'a =
+  let cache = H1.create cache_default_size in
+  let rec visit b =
+    try
+      H1.find cache b
+    with Not_found ->
+      match b.node with
+      | Zero -> zero
+      | One  -> one
+      | Node (v, l, h) ->
+          let y = f v ~low:(visit l) ~high:(visit h) in
+          H1.add cache b y;
+          y
+  in
+  visit b
+
+let cnf_size (b: t) : int =
+  fold ~zero:1 ~one:0 (fun _ ~low ~high -> low + high) b
+
+let paths_to_zero b =
+  fold ~zero:[[]] ~one:[]
+    (fun v ~low ~high ->
+      List.map (fun p ->  v :: p) low  @
+      List.map (fun p -> -v :: p) high )
+    b
+
+let print_dimacs fmt b =
+  let nc = cnf_size b in
+  Format.fprintf fmt "p cnf %d %d@\n" max_var nc;
+  match b.node with
+  | Zero -> Format.fprintf fmt "0"
+  | One -> ()
+  | _ ->
+      let print_literal x = Format.fprintf fmt "%d " x in
+      let print_clause c = List.iter print_literal c; Format.fprintf fmt "0" in
+      let rec print_clauses = function
+        | [] -> ()
+        | c :: cl ->
+            print_clause c;
+            if cl <> [] then (Format.fprintf fmt "@\n"; print_clauses cl) in
+      print_clauses (paths_to_zero b)
+
 (* DOT pretty-printing *)
 
 module S = Set.Make(Bdd)
 
 open Format
 
-let format_to_dot b fmt =
+let print_dot fmt b =
   fprintf fmt "digraph bdd {@\n";
   let ranks = Hashtbl.create 17 in (* var -> set of nodes *)
   let add_rank v b =
@@ -770,13 +841,13 @@ let format_to_dot b fmt =
 
 let to_dot b =
   Buffer.truncate Format.stdbuf 0;
-  format_to_dot b Format.str_formatter;
+  print_dot Format.str_formatter b;
   Buffer.contents Format.stdbuf
 
 let print_to_dot b ~file =
   let c = open_out file in
   let fmt = formatter_of_out_channel c in
-  format_to_dot b fmt;
+  print_dot fmt b;
   close_out c
 
 let display b =
