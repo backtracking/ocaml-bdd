@@ -1,4 +1,6 @@
 
+May 20, 2025 (version 0.5)
+--------------------------
  o new function `print_dimacs` to print a bdd in DIMACS format
  o new function `cnf_size` to compute the number of clauses of a
    conjunctive normal form, that is the number of lines printed
