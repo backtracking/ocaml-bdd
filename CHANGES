@@ -1,5 +1,5 @@
 
-
+ o test/dimacs.ml: builds a BDD from a DIMACS file
  o new functions `mk_exists` and `mk_forall` for quantifier elimination
  o new function `print` to print a BDD as nested "if..then..else"
  o new function `print_compact` to print a BDD in a compact form using

@@ -37,3 +37,8 @@
   (name bench_prop_cli)
   (modules bench_prop_cli)
   (libraries prop))
+
+(executable
+  (name dimacs)
+  (modules dimacs)
+  (libraries bdd))
